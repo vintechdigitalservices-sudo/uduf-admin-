@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Admin Dashboard | UDUF Africa - Student Progress Tracker</title>
+    <title>Admin Dashboard | UDUF Africa - Certificate Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -310,23 +310,6 @@
             box-shadow: 0 0 0 3px rgba(30,47,184,0.1);
         }
 
-        .filter-group {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .filter-group select {
-            padding: 12px 16px;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            background: white;
-            outline: none;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
         .action-buttons {
             display: flex;
             gap: 12px;
@@ -383,59 +366,36 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1200px;
+            min-width: 700px;
         }
 
         th {
             text-align: left;
-            padding: 16px 12px;
+            padding: 16px 20px;
             background: #f8f9fa;
             font-weight: 700;
             color: #1a1a2e;
             border-bottom: 2px solid #eee;
-            font-size: 0.85rem;
         }
 
         td {
-            padding: 12px;
+            padding: 14px 20px;
             border-bottom: 1px solid #eee;
             color: #333;
-            font-size: 0.85rem;
         }
 
         tr:hover {
             background: #fafafa;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-completed {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .status-pending {
-            background: #fff3e0;
-            color: #ed8936;
-        }
-
-        .status-failed {
-            background: #fee;
-            color: #e74c3c;
-        }
-
-        .course-id {
+        .cert-code {
             font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
+            font-weight: 600;
             background: #f0f2f5;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            font-size: 0.85rem;
         }
 
         .empty-row td {
@@ -576,7 +536,7 @@
 <div id="loginContainer" class="login-container">
     <div class="login-card">
         <h2><i class="fas fa-shield-alt"></i> Admin Login</h2>
-        <p>Enter your credentials to access the student progress tracker</p>
+        <p>Enter your credentials to access the certificate manager</p>
         <div id="loginError" class="error-msg"></div>
         <div id="loginSuccess" class="success-msg"></div>
         <div class="input-group">
@@ -602,12 +562,12 @@
     
     <div class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <img src="logo.webp" alt="UDUF Africa" onerror="this.style.display='none'">
+            <img src="logo.png" alt="UDUF Africa" onerror="this.style.display='none'">
             <h3>UDUF Africa</h3>
-            <p style="font-size: 12px; opacity: 0.7;">Student Progress</p>
+            <p style="font-size: 12px; opacity: 0.7;">Certificate Manager</p>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#" class="active" onclick="loadProgress(); return false;"><i class="fas fa-chart-line"></i> Progress Tracker</a></li>
+            <li><a href="#" class="active" onclick="loadCertificates(); return false;"><i class="fas fa-certificate"></i> Certificates</a></li>
         </ul>
         <div class="logout-btn">
             <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -616,7 +576,7 @@
 
     <div class="main-content">
         <div class="top-bar">
-            <h1><i class="fas fa-chart-line"></i> Student Progress Tracker</h1>
+            <h1><i class="fas fa-certificate"></i> Certificate Manager</h1>
             <div class="user-info">
                 <span class="user-email" id="userEmailDisplay"></span>
             </div>
@@ -624,20 +584,12 @@
 
         <div class="stats-cards">
             <div class="stat-card">
-                <h3>Total Enrollments</h3>
+                <h3>Total Certificates</h3>
                 <div class="stat-number" id="totalCount">0</div>
             </div>
             <div class="stat-card">
-                <h3>Completed Courses</h3>
-                <div class="stat-number" id="completedCount">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Completion Rate</h3>
-                <div class="stat-number" id="completionRate">0%</div>
-            </div>
-            <div class="stat-card">
-                <h3>Quiz Pass Rate</h3>
-                <div class="stat-number" id="quizPassRate">0%</div>
+                <h3>Last 7 Days</h3>
+                <div class="stat-number" id="weeklyCount">0</div>
             </div>
         </div>
 
@@ -645,19 +597,7 @@
 
         <div class="toolbar">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search by email or course ID...">
-            </div>
-            <div class="filter-group">
-                <select id="completionFilter">
-                    <option value="all">All Status</option>
-                    <option value="completed">Completed</option>
-                    <option value="inprogress">In Progress</option>
-                </select>
-                <select id="quizFilter">
-                    <option value="all">All Quiz Status</option>
-                    <option value="passed">Quiz Passed</option>
-                    <option value="failed">Quiz Failed/Not Taken</option>
-                </select>
+                <input type="text" id="searchInput" placeholder="Search by name, email, or certificate code...">
             </div>
             <div class="action-buttons">
                 <button class="btn-primary" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
@@ -666,26 +606,22 @@
         </div>
 
         <div class="table-wrapper">
-            <table id="progressTable">
+            <table id="certTable">
                 <thead>
                     <tr>
-                        <th>User ID (Email)</th>
-                        <th>Course ID</th>
-                        <th>Current Page</th>
-                        <th>Modules Completed</th>
-                        <th>Quiz Passed</th>
-                        <th>Quiz Score</th>
-                        <th>Percentage</th>
-                        <th>Last Accessed</th>
-                        <th>Course Status</th>
+                        <th>Name</th>
+                        <th>Course</th>
+                        <th>Email</th>
+                        <th>Certificate Code</th>
+                        <th>Issue Date</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <tr class="empty-row">
-                        <td colspan="9">
+                        <td colspan="5">
                             <div class="loading-spinner">
                                 <div class="spinner"></div>
-                                <p>Loading student progress data...</p>
+                                <p>Loading certificates...</p>
                             </div>
                         </td>
                     </tr>
@@ -723,7 +659,7 @@
     const auth = firebase.auth();
 
     let currentUser = null;
-    let allProgress = [];
+    let allCertificates = [];
 
     // ========== AUTHENTICATION ==========
     function togglePasswordVisibility() {
@@ -805,7 +741,7 @@
         document.getElementById('loginContainer').style.display = 'none';
         document.getElementById('dashboardContainer').style.display = 'block';
         document.getElementById('userEmailDisplay').textContent = currentUser.email;
-        loadProgress();
+        loadCertificates();
     }
 
     async function logout() {
@@ -858,109 +794,79 @@
         });
     }
 
-    function calculateQuizScore(quizAnswers) {
-        if (!quizAnswers || !Array.isArray(quizAnswers) || quizAnswers.length === 0) {
-            return null;
+    function formatDateForPdf(timestamp) {
+        if (!timestamp) return "N/A";
+        
+        let date;
+        if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+            date = timestamp.toDate();
+        } 
+        else if (timestamp.seconds !== undefined) {
+            date = new Date(timestamp.seconds * 1000);
+        }
+        else if (typeof timestamp === 'string') {
+            date = new Date(timestamp);
+        }
+        else if (timestamp instanceof Date) {
+            date = timestamp;
+        }
+        else {
+            return "Invalid date";
         }
         
-        let correctCount = 0;
-        const totalQuestions = quizAnswers.length;
+        if (isNaN(date.getTime())) return "Invalid date";
         
-        for (let i = 0; i < quizAnswers.length; i++) {
-            const answer = quizAnswers[i];
-            if (answer === 1 || answer === "1") {
-                correctCount++;
-            }
-        }
-        
-        const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-        
-        return {
-            correctCount: correctCount,
-            totalQuestions: totalQuestions,
-            percentage: percentage,
-            scoreDisplay: `${correctCount}/${totalQuestions}`
-        };
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric'
+        });
     }
 
-    async function loadProgress() {
+    async function loadCertificates() {
         const tableBody = document.getElementById('tableBody');
         
         tableBody.innerHTML = `
             <tr class="empty-row">
-                <td colspan="9">
+                <td colspan="5">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
-                        <p>Loading student progress...</p>
+                        <p>Loading certificates...</p>
                     </div>
-                  </td>
-              </tr>
+                 </td>
+             </tr>
         `;
         
         try {
-            const progressRef = db.collection("progress");
-            const q = progressRef.orderBy("lastAccessed", "desc");
+            const certificatesRef = db.collection("certificates");
+            const q = certificatesRef.orderBy("issuedAt", "desc");
             const querySnapshot = await q.get();
             
-            allProgress = [];
+            allCertificates = [];
             
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                
-                let quizScoreData = null;
-                let quizPercentage = null;
-                let quizScoreDisplay = null;
-                
-                if (data.quizAnswers && Array.isArray(data.quizAnswers) && data.quizAnswers.length > 0) {
-                    quizScoreData = calculateQuizScore(data.quizAnswers);
-                    if (quizScoreData) {
-                        quizPercentage = quizScoreData.percentage;
-                        quizScoreDisplay = quizScoreData.scoreDisplay;
-                    }
-                } else if (data.quizAnswers === undefined && data.moduleQuizPassed !== undefined) {
-                    if (data.moduleQuizPassed === true) {
-                        quizPercentage = 100;
-                        quizScoreDisplay = 'Passed';
-                    } else {
-                        quizPercentage = 0;
-                        quizScoreDisplay = 'Not taken';
-                    }
-                }
-                
-                let isQuizPassed = data.moduleQuizPassed === true;
-                
-                if (quizPercentage !== null && quizPercentage !== undefined) {
-                    isQuizPassed = quizPercentage >= 70;
-                }
-                
-                allProgress.push({
+                allCertificates.push({
                     id: doc.id,
-                    userId: data.userId || "Unknown",
-                    courseId: data.courseId || "Unknown",
-                    currentPage: data.currentPage || 0,
-                    moduleCompleted: data.moduleCompleted === true,
-                    moduleQuizPassed: isQuizPassed,
-                    originalQuizPassedFlag: data.moduleQuizPassed === true,
-                    quizAnswers: data.quizAnswers || [],
-                    quizScoreData: quizScoreData,
-                    quizPercentage: quizPercentage,
-                    quizScoreDisplay: quizScoreDisplay,
-                    completed: data.completed === true,
-                    lastAccessed: data.lastAccessed || null,
-                    rawTimestamp: data.lastAccessed
+                    name: data.name || "Unknown",
+                    course: data.course || "Unknown Course",
+                    email: data.email || "No email",
+                    code: data.code || "N/A",
+                    issuedAt: data.issuedAt || null,
+                    rawTimestamp: data.issuedAt
                 });
             });
             
             updateStatistics();
-            renderTable(allProgress);
+            renderTable(allCertificates);
             
         } catch (error) {
-            console.error("Error loading progress:", error);
+            console.error("Error loading certificates:", error);
             tableBody.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="9">
+                    <td colspan="5">
                         <div style="color: #e74c3c;">
-                            ⚠️ Failed to load progress data: ${error.message}
+                            ⚠️ Failed to load certificates: ${error.message}
                         </div>
                       </td>
                   </tr>
@@ -970,27 +876,39 @@
     }
 
     function updateStatistics() {
-        const total = allProgress.length;
-        const completed = allProgress.filter(p => p.completed === true).length;
-        const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-        
-        const quizPassed = allProgress.filter(p => p.moduleQuizPassed === true).length;
-        const quizPassRate = total > 0 ? Math.round((quizPassed / total) * 100) : 0;
-        
+        const total = allCertificates.length;
         document.getElementById('totalCount').innerText = total;
-        document.getElementById('completedCount').innerText = completed;
-        document.getElementById('completionRate').innerText = `${completionRate}%`;
-        document.getElementById('quizPassRate').innerText = `${quizPassRate}%`;
+        
+        const now = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        
+        let weeklyCount = 0;
+        allCertificates.forEach(cert => {
+            let certDate = null;
+            if (cert.rawTimestamp) {
+                if (cert.rawTimestamp.toDate && typeof cert.rawTimestamp.toDate === 'function') {
+                    certDate = cert.rawTimestamp.toDate();
+                } else if (cert.rawTimestamp.seconds !== undefined) {
+                    certDate = new Date(cert.rawTimestamp.seconds * 1000);
+                }
+            }
+            if (certDate && certDate >= sevenDaysAgo) {
+                weeklyCount++;
+            }
+        });
+        
+        document.getElementById('weeklyCount').innerText = weeklyCount;
     }
 
-    function renderTable(progressData) {
+    function renderTable(certificates) {
         const tableBody = document.getElementById('tableBody');
         
-        if (!progressData || progressData.length === 0) {
+        if (!certificates || certificates.length === 0) {
             tableBody.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="9">
-                        <div>📭 No progress records found matching your filters.</div>
+                    <td colspan="5">
+                        <div>📭 No certificates found matching your search.</div>
                       </td>
                   </tr>
             `;
@@ -998,65 +916,16 @@
         }
         
         let html = '';
-        progressData.forEach(record => {
-            const lastAccessedStr = formatDate(record.rawTimestamp);
-            
-            const modulesCompletedHtml = record.moduleCompleted 
-                ? '<span class="status-badge status-completed">✓ Completed</span>'
-                : '<span class="status-badge status-pending">⟳ In Progress</span>';
-            
-            const quizPassedHtml = record.moduleQuizPassed 
-                ? '<span class="status-badge status-completed">✓ Passed</span>'
-                : '<span class="status-badge status-failed">✗ Failed/Not Passed</span>';
-            
-            let quizScoreHtml = 'N/A';
-            let quizPercentageHtml = 'N/A';
-            
-            if (record.quizScoreData !== null) {
-                quizScoreHtml = record.quizScoreData.scoreDisplay;
-                const percentage = record.quizScoreData.percentage;
-                quizPercentageHtml = `${percentage}%`;
-                
-                if (percentage >= 70) {
-                    quizPercentageHtml = `<span style="color: #2e7d32; font-weight: 600;">${percentage}%</span>`;
-                } else if (percentage >= 50) {
-                    quizPercentageHtml = `<span style="color: #ed8936; font-weight: 600;">${percentage}%</span>`;
-                } else if (percentage > 0) {
-                    quizPercentageHtml = `<span style="color: #e74c3c; font-weight: 600;">${percentage}%</span>`;
-                }
-            } else if (record.moduleQuizPassed) {
-                quizScoreHtml = 'Passed';
-                quizPercentageHtml = '<span style="color: #2e7d32;">100%</span>';
-            } else if (record.originalQuizPassedFlag === false && record.quizAnswers && record.quizAnswers.length > 0) {
-                if (record.quizScoreData) {
-                    quizScoreHtml = record.quizScoreData.scoreDisplay;
-                    quizPercentageHtml = `<span style="color: #e74c3c; font-weight: 600;">${record.quizScoreData.percentage}%</span>`;
-                }
-            }
-            
-            let courseStatusHtml = '';
-            let progressPercent = 0;
-            
-            if (record.completed === true) {
-                courseStatusHtml = '<span class="status-badge status-completed">✓ Completed</span>';
-                progressPercent = 100;
-            } else {
-                const maxPages = 10;
-                progressPercent = Math.min(Math.round((record.currentPage / maxPages) * 100), 95);
-                courseStatusHtml = `<span class="status-badge status-pending">⟳ ${progressPercent}% Complete</span>`;
-            }
+        certificates.forEach(cert => {
+            let dateStr = formatDate(cert.rawTimestamp);
             
             html += `
                 <tr>
-                    <td style="word-break: break-word;">${escapeHtml(record.userId)}</td>
-                    <td><span class="course-id">${escapeHtml(record.courseId)}</span></td>
-                    <td style="text-align: center;">${record.currentPage}</td>
-                    <td>${modulesCompletedHtml}</td>
-                    <td>${quizPassedHtml}</td>
-                    <td class="quiz-score">${quizScoreHtml}</td>
-                    <td>${quizPercentageHtml}</td>
-                    <td>${lastAccessedStr}</td>
-                    <td>${courseStatusHtml}</td>
+                    <td><strong>${escapeHtml(cert.name)}</strong></td>
+                    <td>${escapeHtml(cert.course)}</td>
+                    <td>${escapeHtml(cert.email)}</td>
+                    <td><span class="cert-code">${escapeHtml(cert.code)}</span></td>
+                    <td class="date-badge">${dateStr}</td>
                 </tr>
             `;
         });
@@ -1074,31 +943,20 @@
             .replace(/'/g, '&#39;');
     }
 
-    function filterProgress() {
+    function filterCertificates() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-        const completionFilter = document.getElementById('completionFilter').value;
-        const quizFilter = document.getElementById('quizFilter').value;
         
-        let filtered = [...allProgress];
-        
-        if (searchTerm !== '') {
-            filtered = filtered.filter(record => {
-                return record.userId.toLowerCase().includes(searchTerm) ||
-                       record.courseId.toLowerCase().includes(searchTerm);
-            });
+        if (searchTerm === '') {
+            renderTable(allCertificates);
+            return;
         }
         
-        if (completionFilter === 'completed') {
-            filtered = filtered.filter(record => record.completed === true);
-        } else if (completionFilter === 'inprogress') {
-            filtered = filtered.filter(record => record.completed !== true);
-        }
-        
-        if (quizFilter === 'passed') {
-            filtered = filtered.filter(record => record.moduleQuizPassed === true);
-        } else if (quizFilter === 'failed') {
-            filtered = filtered.filter(record => record.moduleQuizPassed !== true);
-        }
+        const filtered = allCertificates.filter(cert => {
+            return cert.name.toLowerCase().includes(searchTerm) ||
+                   cert.email.toLowerCase().includes(searchTerm) ||
+                   cert.code.toLowerCase().includes(searchTerm) ||
+                   cert.course.toLowerCase().includes(searchTerm);
+        });
         
         renderTable(filtered);
     }
@@ -1114,108 +972,67 @@
     }
 
     async function exportToPDF() {
-        if (allProgress.length === 0) {
-            showAlert("No progress data to export.", "error");
+        if (allCertificates.length === 0) {
+            showAlert("No certificate data to export.", "error");
             return;
         }
 
         showAlert("Generating PDF report...", "success");
         
         const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-        const completionFilter = document.getElementById('completionFilter').value;
-        const quizFilter = document.getElementById('quizFilter').value;
-        
-        let dataToExport = [...allProgress];
+        let dataToExport = allCertificates;
         
         if (searchTerm !== '') {
-            dataToExport = dataToExport.filter(record => {
-                return record.userId.toLowerCase().includes(searchTerm) ||
-                       record.courseId.toLowerCase().includes(searchTerm);
+            dataToExport = allCertificates.filter(cert => {
+                return cert.name.toLowerCase().includes(searchTerm) ||
+                       cert.email.toLowerCase().includes(searchTerm) ||
+                       cert.code.toLowerCase().includes(searchTerm) ||
+                       cert.course.toLowerCase().includes(searchTerm);
             });
         }
         
-        if (completionFilter === 'completed') {
-            dataToExport = dataToExport.filter(record => record.completed === true);
-        } else if (completionFilter === 'inprogress') {
-            dataToExport = dataToExport.filter(record => record.completed !== true);
-        }
-        
-        if (quizFilter === 'passed') {
-            dataToExport = dataToExport.filter(record => record.moduleQuizPassed === true);
-        } else if (quizFilter === 'failed') {
-            dataToExport = dataToExport.filter(record => record.moduleQuizPassed !== true);
-        }
-        
         if (dataToExport.length === 0) {
-            showAlert("No data matching current filters to export.", "error");
+            showAlert("No data matching current filter to export.", "error");
             return;
         }
         
         const exportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         let tableRows = '';
         
-        dataToExport.forEach(record => {
-            const lastAccessedStr = formatDate(record.rawTimestamp);
-            const modulesStatus = record.moduleCompleted ? 'Completed' : 'In Progress';
-            const quizStatus = record.moduleQuizPassed ? 'Passed' : 'Failed/Not Passed';
-            let quizScoreDisplay = 'N/A';
-            let quizPercentDisplay = 'N/A';
-            
-            if (record.quizScoreData !== null) {
-                quizScoreDisplay = record.quizScoreData.scoreDisplay;
-                quizPercentDisplay = `${record.quizScoreData.percentage}%`;
-            } else if (record.moduleQuizPassed) {
-                quizScoreDisplay = 'Passed';
-                quizPercentDisplay = '100%';
-            }
-            
-            const courseStatus = record.completed ? 'Completed' : 'In Progress';
-            
+        dataToExport.forEach(cert => {
+            const dateStr = formatDateForPdf(cert.rawTimestamp);
             tableRows += `
                 <tr>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${escapeHtml(record.userId)}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${escapeHtml(record.courseId)}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd; text-align: center;">${record.currentPage}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${modulesStatus}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${quizStatus}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${quizScoreDisplay}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${quizPercentDisplay}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${lastAccessedStr}</td>
-                    <td style="padding: 8px 10px; border: 1px solid #ddd;">${courseStatus}</td>
+                    <td style="padding: 10px 12px; border: 1px solid #ddd;">${escapeHtml(cert.name)}</td>
+                    <td style="padding: 10px 12px; border: 1px solid #ddd;">${escapeHtml(cert.course)}</td>
+                    <td style="padding: 10px 12px; border: 1px solid #ddd;">${escapeHtml(cert.email)}</td>
+                    <td style="padding: 10px 12px; border: 1px solid #ddd;">${escapeHtml(cert.code)}</td>
+                    <td style="padding: 10px 12px; border: 1px solid #ddd;">${dateStr}</td>
                 </tr>
             `;
         });
-        
-        const completedCount = dataToExport.filter(r => r.completed === true).length;
-        const quizPassedCount = dataToExport.filter(r => r.moduleQuizPassed === true).length;
         
         const pdfHtml = `
             <div style="padding: 40px; font-family: 'Inter', sans-serif; background: white;">
                 <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1e2fb8; padding-bottom: 20px;">
                     <h2 style="color: #1e2fb8; font-size: 28px; margin: 0;">UDUF Africa</h2>
-                    <p style="color: #666; margin-top: 8px;">Student Progress Report</p>
+                    <p style="color: #666; margin-top: 8px;">Certificate Issuance Report</p>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
                     <p><strong>Generated on:</strong> ${exportDate}</p>
-                    <p><strong>Total Enrollments:</strong> ${dataToExport.length}</p>
-                    <p><strong>Completed Courses:</strong> ${completedCount} (${Math.round((completedCount/dataToExport.length)*100)}%)</p>
-                    <p><strong>Quiz Passed (≥70%):</strong> ${quizPassedCount} (${Math.round((quizPassedCount/dataToExport.length)*100)}%)</p>
-                    ${searchTerm ? `<p><strong>Search Filter:</strong> "${searchTerm}"</p>` : ''}
+                    <p><strong>Total Certificates:</strong> ${dataToExport.length}</p>
+                    ${searchTerm ? `<p><strong>Filter Applied:</strong> "${searchTerm}"</p>` : ''}
                 </div>
                 
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 11px;">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                     <thead>
                         <tr style="background: #f0f2f5;">
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">User ID (Email)</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Course ID</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Page</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Modules</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Quiz</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Score</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">%</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Last Accessed</th>
-                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Status</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left; font-weight: 600;">Name</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left; font-weight: 600;">Course</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left; font-weight: 600;">Email</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left; font-weight: 600;">Certificate Code</th>
+                            <th style="padding: 12px; border: 1px solid #ddd; text-align: left; font-weight: 600;">Issue Date</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1223,9 +1040,9 @@
                     </tbody>
                 </table>
                 
-                <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999;">
-                    <p>© 2026 UDUF Africa — Secure Student Progress Tracker</p>
-                    <p>* Quiz passing threshold is 70% (percentage of correct answers)</p>
+                <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999;">
+                    <p>© 2026 UDUF Africa — Secure Certificate Portal</p>
+                    <p>This is an official report of all certificate issuances.</p>
                 </div>
             </div>
         `;
@@ -1261,7 +1078,7 @@
                 heightLeft -= pageHeight;
             }
             
-            const fileName = `UDUF_Progress_Report_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.pdf`;
+            const fileName = `UDUF_Certificate_Report_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.pdf`;
             pdf.save(fileName);
             
             showAlert("PDF report downloaded successfully!", "success");
@@ -1290,13 +1107,11 @@
 
     // Event Listeners
     document.getElementById('refreshBtn').addEventListener('click', () => {
-        loadProgress();
-        showAlert("Refreshing progress data...", "success");
+        loadCertificates();
+        showAlert("Refreshing certificate data...", "success");
     });
     
-    document.getElementById('searchInput').addEventListener('input', filterProgress);
-    document.getElementById('completionFilter').addEventListener('change', filterProgress);
-    document.getElementById('quizFilter').addEventListener('change', filterProgress);
+    document.getElementById('searchInput').addEventListener('input', filterCertificates);
     document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
 
     // Auth state observer
