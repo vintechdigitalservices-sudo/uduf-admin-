@@ -20,6 +20,56 @@
             line-height: 1.5;
         }
 
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            font-size: 28px;
+            color: #1e2fb8;
+            margin-bottom: 8px;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            margin-top: -20px;
+        }
+
+        .close-modal:hover {
+            color: #1e2fb8;
+        }
+
         /* Dashboard Container */
         .dashboard-container {
             min-height: 100vh;
@@ -128,6 +178,22 @@
             background: #f0f2f5;
             padding: 6px 12px;
             border-radius: 20px;
+        }
+
+        .login-top-btn {
+            background: #1e2fb8;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .login-top-btn:hover {
+            background: #f58220;
         }
 
         /* Welcome Section */
@@ -394,6 +460,28 @@
 </head>
 <body>
 
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+        <h2><i class="fas fa-shield-alt"></i> Admin Login</h2>
+        <p>Enter your credentials to access the admin dashboard</p>
+        <div id="loginError" class="error-msg" style="display:none; background:#fee; color:#e74c3c; padding:12px; border-radius:10px; margin-bottom:20px;"></div>
+        <div class="input-group">
+            <label>Email Address</label>
+            <input type="email" id="modalAdminEmail" placeholder="admin@example.com" style="width:100%; padding:12px 16px; border:2px solid #e0e0e0; border-radius:12px; font-size:16px; margin-bottom:20px;">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <div class="password-wrapper" style="position:relative;">
+                <input type="password" id="modalAdminPassword" placeholder="Enter password" style="width:100%; padding:12px 16px; border:2px solid #e0e0e0; border-radius:12px; font-size:16px;">
+                <i class="fas fa-eye-slash toggle-password" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer; color:#999;"></i>
+            </div>
+        </div>
+        <button class="login-btn" id="modalLoginBtn" style="width:100%; padding:14px; background:#1e2fb8; color:white; border:none; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; margin-top:20px;"><i class="fas fa-sign-in-alt"></i> Login to Dashboard</button>
+    </div>
+</div>
+
 <!-- Dashboard Container -->
 <div id="dashboardContainer" class="dashboard-container">
     <div class="menu-toggle" onclick="toggleSidebar()">
@@ -423,14 +511,15 @@
         <div class="top-bar">
             <h1><i class="fas fa-home"></i> Admin Home</h1>
             <div class="user-info">
-                <span class="user-email" id="userEmailDisplay">admin@udufafrica.org</span>
+                <span class="user-email" id="userEmailDisplay">Not logged in</span>
+                <button class="login-top-btn" id="showLoginBtn" onclick="showLoginModal()"><i class="fas fa-sign-in-alt"></i> Login</button>
             </div>
         </div>
 
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <h2>Welcome back, <span id="adminNameDisplay">Admin</span>!</h2>
-            <p>Manage your UDUF Africa administrative tools from one central dashboard.</p>
+            <h2>Welcome, <span id="adminNameDisplay">Guest</span>!</h2>
+            <p>Please log in to access complete admin tools and view statistics.</p>
         </div>
 
         <!-- Quick Stats -->
@@ -540,35 +629,125 @@
 
     let currentUser = null;
 
-    // Check authentication - update UI if logged in, but don't redirect
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            currentUser = user;
+    // Login Modal Elements
+    const loginModal = document.getElementById('loginModal');
+    const modalEmail = document.getElementById('modalAdminEmail');
+    const modalPassword = document.getElementById('modalAdminPassword');
+    const modalLoginBtn = document.getElementById('modalLoginBtn');
+    const loginError = document.getElementById('loginError');
+
+    // Toggle password visibility in modal
+    document.querySelector('.toggle-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('modalAdminPassword');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            this.classList.remove('fa-eye-slash');
+            this.classList.add('fa-eye');
+        } else {
+            passwordInput.type = 'password';
+            this.classList.remove('fa-eye');
+            this.classList.add('fa-eye-slash');
+        }
+    });
+
+    function showLoginModal() {
+        loginModal.classList.add('active');
+        modalEmail.value = '';
+        modalPassword.value = '';
+        loginError.style.display = 'none';
+    }
+
+    function closeLoginModal() {
+        loginModal.classList.remove('active');
+    }
+
+    async function login() {
+        const email = modalEmail.value.trim();
+        const password = modalPassword.value;
+
+        loginError.style.display = 'none';
+
+        if (!email || !password) {
+            loginError.textContent = 'Please enter both email and password';
+            loginError.style.display = 'block';
+            return;
+        }
+
+        modalLoginBtn.disabled = true;
+        modalLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            currentUser = userCredential.user;
+            
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            sessionStorage.setItem('adminEmail', currentUser.email);
+            
+            closeLoginModal();
+            updateUIForLoggedInUser();
+            showToast('Login successful!', 'success');
+            
+        } catch (error) {
+            console.error('Login error:', error);
+            let errorMessage = 'Login failed. ';
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage += 'User not found. Please contact administrator.';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage += 'Incorrect password. Please try again.';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage += 'Invalid email format.';
+                    break;
+                default:
+                    errorMessage += 'Please check your credentials and try again.';
+            }
+            loginError.textContent = errorMessage;
+            loginError.style.display = 'block';
+        } finally {
+            modalLoginBtn.disabled = false;
+            modalLoginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
+        }
+    }
+
+    modalLoginBtn.addEventListener('click', login);
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target === loginModal) {
+            closeLoginModal();
+        }
+    }
+
+    function updateUIForLoggedInUser() {
+        if (currentUser) {
             document.getElementById('userEmailDisplay').textContent = currentUser.email;
             const adminName = currentUser.email.split('@')[0];
             document.getElementById('adminNameDisplay').textContent = adminName.charAt(0).toUpperCase() + adminName.slice(1);
+            document.querySelector('.welcome-section p').textContent = 'Manage your UDUF Africa administrative tools from one central dashboard.';
+            document.getElementById('showLoginBtn').style.display = 'none';
             loadDashboardStats();
-        } else {
-            // User not logged in - show default display without stats
-            document.getElementById('userEmailDisplay').textContent = 'Not logged in';
-            document.getElementById('adminNameDisplay').textContent = 'Guest';
-            document.getElementById('feedbackCount').textContent = '?';
-            document.getElementById('studentCount').textContent = '?';
-            document.getElementById('certificateCount').textContent = '?';
-            document.getElementById('codeCount').textContent = '?';
         }
-    });
+    }
 
     async function logout() {
         try {
             await auth.signOut();
-            showToast('Logged out successfully', 'success');
+            sessionStorage.removeItem('adminLoggedIn');
+            sessionStorage.removeItem('adminEmail');
+            currentUser = null;
+            
             document.getElementById('userEmailDisplay').textContent = 'Not logged in';
             document.getElementById('adminNameDisplay').textContent = 'Guest';
-            document.getElementById('feedbackCount').textContent = '?';
-            document.getElementById('studentCount').textContent = '?';
-            document.getElementById('certificateCount').textContent = '?';
-            document.getElementById('codeCount').textContent = '?';
+            document.querySelector('.welcome-section p').textContent = 'Please log in to access complete admin tools and view statistics.';
+            document.getElementById('showLoginBtn').style.display = 'inline-flex';
+            document.getElementById('feedbackCount').textContent = '--';
+            document.getElementById('studentCount').textContent = '--';
+            document.getElementById('certificateCount').textContent = '--';
+            document.getElementById('codeCount').textContent = '--';
+            
+            showToast('Logged out successfully', 'success');
         } catch (error) {
             console.error('Logout error:', error);
             showToast('Error logging out', 'error');
@@ -578,19 +757,15 @@
     // ========== DASHBOARD STATS ==========
     async function loadDashboardStats() {
         try {
-            // Load feedbacks count
             const feedbacksSnap = await db.collection('feedbacks').get();
             document.getElementById('feedbackCount').textContent = feedbacksSnap.size;
             
-            // Load students count (users collection)
             const studentsSnap = await db.collection('users').get();
             document.getElementById('studentCount').textContent = studentsSnap.size;
             
-            // Load certificates count
             const certificatesSnap = await db.collection('certificates').get();
             document.getElementById('certificateCount').textContent = certificatesSnap.size;
             
-            // Load active codes (unused codes)
             const codesSnap = await db.collection('codes').where('used', '==', false).get();
             document.getElementById('codeCount').textContent = codesSnap.size;
             
@@ -605,6 +780,12 @@
 
     // ========== NAVIGATION ==========
     function navigateTo(page) {
+        if (!currentUser) {
+            showToast('Please login first to access this page', 'error');
+            showLoginModal();
+            return;
+        }
+        
         const pageUrls = {
             'feedbacks': 'feedbacks.html',
             'students': 'enrollments.html',
@@ -634,6 +815,17 @@
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('open');
     }
+
+    // Check authentication on page load
+    auth.onAuthStateChanged((user) => {
+        if (user && sessionStorage.getItem('adminLoggedIn') === 'true') {
+            currentUser = user;
+            updateUIForLoggedInUser();
+        } else if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+            sessionStorage.removeItem('adminLoggedIn');
+            sessionStorage.removeItem('adminEmail');
+        }
+    });
 </script>
 </body>
 </html>
