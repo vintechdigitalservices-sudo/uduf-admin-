@@ -540,7 +540,7 @@
 
     let currentUser = null;
 
-    // Check authentication - redirect to login page if not authenticated
+    // Check authentication - update UI if logged in, but don't redirect
     auth.onAuthStateChanged((user) => {
         if (user) {
             currentUser = user;
@@ -549,15 +549,26 @@
             document.getElementById('adminNameDisplay').textContent = adminName.charAt(0).toUpperCase() + adminName.slice(1);
             loadDashboardStats();
         } else {
-            // Redirect to the feedbacks page which has the login modal
-            window.location.href = 'feedbacks.html';
+            // User not logged in - show default display without stats
+            document.getElementById('userEmailDisplay').textContent = 'Not logged in';
+            document.getElementById('adminNameDisplay').textContent = 'Guest';
+            document.getElementById('feedbackCount').textContent = '?';
+            document.getElementById('studentCount').textContent = '?';
+            document.getElementById('certificateCount').textContent = '?';
+            document.getElementById('codeCount').textContent = '?';
         }
     });
 
     async function logout() {
         try {
             await auth.signOut();
-            window.location.href = 'feedbacks.html';
+            showToast('Logged out successfully', 'success');
+            document.getElementById('userEmailDisplay').textContent = 'Not logged in';
+            document.getElementById('adminNameDisplay').textContent = 'Guest';
+            document.getElementById('feedbackCount').textContent = '?';
+            document.getElementById('studentCount').textContent = '?';
+            document.getElementById('certificateCount').textContent = '?';
+            document.getElementById('codeCount').textContent = '?';
         } catch (error) {
             console.error('Logout error:', error);
             showToast('Error logging out', 'error');
